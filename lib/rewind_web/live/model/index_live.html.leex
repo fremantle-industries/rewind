@@ -1,0 +1,27 @@
+<div class="space-x-4">
+  <h2 class="text-3xl">Models</h2>
+</div>
+
+<table class="w-full mt-8">
+  <thead class="bg-gray-200 border-t-2 border-gray-400">
+    <tr>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">ID</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Created At</th>
+    </tr>
+  </thead>
+  <tbody>
+    <%= if Enum.any?(@models) do %>
+      <%= for m <- @models do %>
+        <tr class="hover:bg-gray-50 border-t border-b group">
+          <td class="px-4 py-3"><%= link m.id, to: Routes.model_path(@socket, :show, m.id), class: "hover:opacity-75" %></td>
+          <td class="px-4 py-3"><%= m.inserted_at %></td>
+          <td class="px-4 py-3"><%= m.name %></td>
+        </tr>
+      <% end %>
+    <% else %>
+      <tr class="hover:bg-gray-50 border-t border-b group">
+        <td colspan="2" class="px-4 py-3">No models</td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

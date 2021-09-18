@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  db:
+    # postgres 14 provides index performance improvements
+    # image: postgres:13.4
+    image: postgres:14beta3
+    volumes:
+      - "db_data:/var/lib/postgresql/data"
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+  rewind:
+    image: freo-cap/rewind:latest
+    depends_on:
+      - db
+    ports:
+      - "${REWIND_PROMETHEUS_METRICS_PORT:-9568}:${REWIND_PROMETHEUS_METRICS_PORT:-9568}"
+      - "${WORKBENCH_PROMETHEUS_METRICS_PORT:-9569}:${WORKBENCH_PROMETHEUS_METRICS_PORT:-9569}"
+      - "${HISTORY_PROMETHEUS_METRICS_PORT:-9570}:${HISTORY_PROMETHEUS_METRICS_PORT:-9570}"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-ecto://postgres:postgres@db:5432/rewind_?}
+      - NODE_COOKIE
+      - HTTP_PORT
+      - BEAM_PORT
+      - REWIND_PROMETHEUS_METRICS_PORT
+      - REWIND_HOST
+      - WORKBENCH_PROMETHEUS_METRICS_PORT
+      - WORKBENCH_HOST
+      - HISTORY_PROMETHEUS_METRICS_PORT
+      - HISTORY_HOST
+      - GRAFANA_HOST
+      - PROMETHEUS_HOST
+      - WORKBENCH_SECRET_KEY_BASE
+      - WORKBENCH_LIVE_VIEW_SIGNING_SALT
+      - HISTORY_SECRET_KEY_BASE
+      - HISTORY_LIVE_VIEW_SIGNING_SALT
+      - DOWNLOAD_CANDLE_CHUNKS_CONCURRENCY
+      - BITMEX_API_KEY
+      - BITMEX_API_SECRET
+      - BINANCE_API_KEY
+      - BINANCE_API_SECRET
+      - OKEX_API_KEY
+      - OKEX_API_PASSPHRASE
+      - OKEX_API_SECRET
+      - FTX_API_KEY
+      - FTX_API_SECRET
+
+  prometheus:
+    image: 'prom/prometheus:v2.30.0'
+    restart: always
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+
+  grafana:
+    image: 'grafana/grafana:8.1.4'
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    env_file:
+      - ./grafana/config.monitoring
+
+  reverse_proxy:
+    build:
+      context: .
+      dockerfile: ./reverse_proxy/Dockerfile
+    ports:
+      - 80:80
+    volumes:
+      - ./reverse_proxy/templates:/etc/nginx/templates
+      - ./reverse_proxy/nginx.htpasswd:/etc/nginx/conf.d/nginx.htpasswd
+    environment:
+      - HTTP_PORT
+      - REWIND_HOST
+      - WORKBENCH_HOST
+      - HISTORY_HOST
+      - GRAFANA_HOST
+      - PROMETHEUS_HOST
+
+volumes:
+  db_data:
+  prometheus_data:
+  grafana_data:
