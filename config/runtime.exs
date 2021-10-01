@@ -123,26 +123,7 @@ config :livebook, LivebookWeb.Endpoint,
   live_view: [signing_salt: livebook_live_view_signing_salt],
   server: false
 
-config :livebook, :root_path, Livebook.Config.root_path!("LIVEBOOK_ROOT_PATH")
-
-if password = Livebook.Config.password!("LIVEBOOK_PASSWORD") do
-  config :livebook, authentication_mode: :password, password: password
-else
-  config :livebook, token: Livebook.Utils.random_id()
-end
-
-if ip = Livebook.Config.ip!("LIVEBOOK_IP") do
-  config :livebook, LivebookWeb.Endpoint, http: [ip: ip]
-end
-
-config :livebook,
-       :cookie,
-       Livebook.Config.cookie!("LIVEBOOK_COOKIE") || Livebook.Utils.random_cookie()
-
-config :livebook,
-       :default_runtime,
-       Livebook.Config.default_runtime!("LIVEBOOK_DEFAULT_RUNTIME") ||
-         {Livebook.Runtime.ElixirStandalone, []}
+Livebook.config_runtime()
 
 # Master Proxy
 config :master_proxy,
@@ -396,8 +377,60 @@ if config_env() == :dev do
       ]
     ]
 
-  config :rewind, :download_candle_chunks_concurrency, {:system, :integer, "DOWNLOAD_CANDLE_CHUNKS_CONCURRENCY", 2}
+  config :rewind, models: %{
+    benchmark_pairs: {Rewind.Examples.BenchmarkPairs, %{
+      benchmark: {"ftx", "btc-perp"},
+      # TODO: Add support in juice query language for attribute filtering
+      # pairs: "ftx:*:type=swap,type=spot -ftx:btc-perp",
+      pairs: [
+        # L1
+        {"ftx", "eth-perp"},
+        {"ftx", "bnb-perp"},
+        {"ftx", "sol-perp"},
+        {"ftx", "avax-perp"},
+        {"ftx", "luna-perp"},
+        {"ftx", "dot-perp"},
+        {"ftx", "algo-perp"},
+        {"ftx", "near-perp"},
+        {"ftx", "ltc-perp"},
+        {"ftx", "ada-perp"},
+        {"ftx", "xrp-perp"},
+        # L2
+        {"ftx", "matic-perp"},
+        {"ftx", "lrc-perp"},
+        # Storage
+        {"ftx", "fil-perp"},
+        {"ftx", "ar-perp"},
+        {"ftx", "storj-perp"},
+        # Middleware
+        {"ftx", "link-perp"},
+        {"ftx", "grt-perp"},
+        # Meme
+        {"ftx", "doge-perp"},
+        # Metaverse
+        {"ftx", "sand-perp"},
+        {"ftx", "mana-perp"},
+        {"ftx", "enj-perp"},
+        {"ftx", "audio-perp"},
+        {"ftx", "chz-perp"},
+        # Gaming
+        {"ftx", "axs-perp"},
+        {"ftx", "gala-perp"},
+        # DeFi
+        {"ftx", "uni-perp"},
+        {"ftx", "cake-perp"},
+        {"ftx", "sushi-perp"},
+        {"ftx", "crv-perp"},
+        {"ftx", "spell-perp"}
+      ],
+      distance_from_mean_fast: {:min_1, 240},
+      distance_from_mean_medium: {:min_1, 1440},
+      distance_from_mean_slow: {:min_1, 10080},
+      distance_from_mean_xslow: {:min_1, 20160}
+    }},
+  }
 
+  # Tai
   config :tai, venues: %{
     ftx: [
       start_on_boot: true,

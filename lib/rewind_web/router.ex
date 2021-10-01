@@ -17,18 +17,19 @@ defmodule RewindWeb.Router do
   scope "/", RewindWeb do
     pipe_through :browser
 
-    live "/", HomeLive, :index
-    live("/models", Model.IndexLive, :index, as: :model)
-    live "/models/:id", Model.ShowLive, :index
+    live_session :default do
+      live "/", HomeLive, :index
+      live "/models", Model.IndexLive, :index, as: :model
+      live "/models/:id", Model.ShowLive, :show, as: :model
+    end
   end
 
   scope "/", NotifiedPhoenix do
     pipe_through :browser
 
-    live("/notifications", ListLive, :index,
-      as: :notification,
-      layout: {RewindWeb.LayoutView, :root}
-    )
+    live_session :notifications, root_layout: {RewindWeb.LayoutView, :root} do
+      live("/notifications", ListLive, :index, as: :notification)
+    end
   end
 
   # Enables LiveDashboard only for development

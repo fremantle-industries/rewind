@@ -12,8 +12,6 @@ services:
       target: builder
       args:
         version: "${VERSION:-0.0.1}"
-    environment:
-      - DOCKER=${DOCKER:-true}
     volumes:
       - rewind_build:/app/_build
       - rewind_deps:/app/deps
@@ -23,7 +21,7 @@ services:
       - ./config:/app/config
       - ./lib:/app/lib
       - ./priv/tai/order_repo:/app/priv/tai/order_repo
-    entrypoint: "sh -c 'mix setup.deps && mix compile && elixir --sname rewind -S mix phx.server'"
+    entrypoint: "sh -c 'mix setup.deps && elixir --sname rewind -S mix phx.server'"
 
 volumes:
   rewind_build:

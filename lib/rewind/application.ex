@@ -1,28 +1,27 @@
 defmodule Rewind.Application do
-  # See https://hexdocs.pm/elixir/Application.html
-  # for more information on OTP Applications
   @moduledoc false
 
   use Application
 
   def start(_type, _args) do
     children = [
-      # Start the Ecto repository
       Rewind.Repo,
-      # Start the Telemetry supervisor
       RewindWeb.Telemetry,
-      # Start the PubSub system
       {Phoenix.PubSub, name: Rewind.PubSub},
-      # Start the Endpoint (http/https)
+      Rewind.Backtests.Supervisor,
+      Rewind.Models.Supervisor,
       RewindWeb.Endpoint
-      # Start a worker by calling: Rewind.Worker.start_link(arg)
-      # {Rewind.Worker, arg}
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Rewind.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  def start_phase(:models, _start_type, _phase_args) do
+    # TODO: Do something with the return value
+    {:ok, _} = Rewind.Models.load()
+
+    :ok
   end
 
   # Tell Phoenix to update the endpoint configuration

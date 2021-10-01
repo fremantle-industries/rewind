@@ -1,1 +1,212 @@
-TODO: SHOW
+<div class="space-x-4">
+  <h2 class="text-3xl">
+    <%= live_patch "Models", to: Routes.model_path(@socket, :index), class: "opacity-70 hover:opacity-50" %>/<%= @model.id %>
+  </h2>
+</div>
+
+<div class="mt-8">
+  <h3 class="text-3xl">Pinned Backtests</h2>
+</div>
+
+<table class="w-full mt-4">
+  <thead class="bg-gray-200 border-t-2 border-gray-400">
+    <tr>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">ID</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Status</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">From</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">To</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Tick</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Products</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Inputs</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Data</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">PnL</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Sharp</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Sortino</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Drawdown</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Visualize</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <%= if Enum.any?(@pinned_backtests) do %>
+      <%= for b <- @pinned_backtests do %>
+        <tr class="hover:bg-gray-50 border-t border-b group">
+          <td class="px-4 py-3"><%= b.id %></td>
+          <td class="px-4 py-3"><%= b.status %></td>
+          <td class="px-4 py-3"><%= Rewind.Backtests.Backtest.from!(b) %></td>
+          <td class="px-4 py-3"><%= Rewind.Backtests.Backtest.to!(b) %></td>
+          <td class="px-4 py-3"><%= b.tick %></td>
+          <td class="px-4 py-3"><span class="opacity-25">products...</span></td>
+          <td class="px-4 py-3"><span class="opacity-25">inputs...</span></td>
+          <td class="px-4 py-3"><span class="opacity-25">candles: [:min_1], indicators: %{distance_from_mean: [:min_1]}</span></td>
+          <td class="px-4 py-3"><span class="opacity-25">+15.62%</span></td>
+          <td class="px-4 py-3"><span class="opacity-25">0.62</span></td>
+          <td class="px-4 py-3"><span class="opacity-25">0.14</span></td>
+          <td class="px-4 py-3"><span class="opacity-25">-7.26%</span></td>
+          <td class="px-4 py-3"><%= link "TODO: Grafana...", to: "/", class: "opacity-25" %></td>
+          <td class="px-4 py-3">
+            <%= content_tag(
+                :button,
+                title: "unpin",
+                type: :button,
+                class: "text-blue-500 font-bold invisible group-hover:visible py-3",
+                "phx-click": "unpin",
+                "phx-value-id": b.id
+              ) do %>
+              <%= Stylish.BookmarkSolidIcon.bookmark_solid_icon() %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    <% else %>
+      <tr class="hover:bg-gray-50 border-t border-b group">
+        <td colspan="14" class="px-4 py-3">No pinned backtests</td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<div class="mt-8">
+  <h3 class="text-3xl">Backtests</h2>
+
+  <%= form_for @backtest_changeset, "#", [phx_submit: :create_backtest, class: "flex mt-4"], fn f -> %>
+    <div>
+      <label class="font-bold">
+        from:
+        <%= date_select f, :from_date %>
+        <%= error_tag f, :from_date %>
+        <%= text_input f, :from_time, type: "time" %>
+        <%= error_tag f, :from_time %>
+      </label>
+      <label class="ml-4 font-bold">
+        to:
+        <%= date_select f, :to_date %>
+        <%= error_tag f, :to_date %>
+        <%= text_input f, :to_time, type: "time" %>
+        <%= error_tag f, :to_time %>
+      </label>
+      <label class="ml-4 font-bold">
+        tick:
+        <%= select f, :tick, tick_types(), selected: :min_1 %>
+      </label>
+
+      <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded ml-4">
+        Create
+      </button>
+    </div>
+  <% end %>
+</div>
+
+<table class="w-full mt-4">
+  <thead class="bg-gray-200 border-t-2 border-gray-400">
+    <tr>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">ID</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Status</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">From</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">To</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Tick</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Inputs</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Quotes</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Trades</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Candles</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Indicators</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">PnL</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Sharp</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Sortino</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Drawdown</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Visualize</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <%= if Enum.any?(@backtests) do %>
+      <%= for b <- @backtests do %>
+        <tr class="hover:bg-gray-50 border-t border-b group">
+          <td class="px-4 py-3"><%= b.id %></td>
+          <td class="px-4 py-3"><%= b.status %></td>
+          <td class="px-4 py-3"><%= Rewind.Backtests.Backtest.from!(b) %></td>
+          <td class="px-4 py-3"><%= Rewind.Backtests.Backtest.to!(b) %></td>
+          <td class="px-4 py-3"><%= b.tick %></td>
+          <td class="px-4 py-3"><span class="opacity-25">inputs...</span></td>
+          <td class="px-4 py-3"><%= format_product_keys(b.quotes) %></td>
+          <td class="px-4 py-3"><%= format_product_keys(b.trades) %></td>
+          <td class="px-4 py-3"><%= format_candles(b.candles) %></td>
+          <td class="px-4 py-3"><%= format_indicators(b.indicators) %></td>
+          <td class="px-4 py-3"><span class="opacity-25">+15.62%</span></td>
+          <td class="px-4 py-3"><span class="opacity-25">0.62</span></td>
+          <td class="px-4 py-3"><span class="opacity-25">0.14</span></td>
+          <td class="px-4 py-3"><span class="opacity-25">-7.26%</span></td>
+          <td class="px-4 py-3"><%= link "TODO: Grafana...", to: "/", class: "opacity-25" %></td>
+          <td class="px-4 py-3">
+            <%# pin/unpin %>
+            <%= if b.pinned do %> 
+              <%= content_tag(
+                  :button,
+                  title: "unpin",
+                  type: :button,
+                  class: "text-blue-500 font-bold invisible group-hover:visible py-3",
+                  "phx-click": "unpin",
+                  "phx-value-id": b.id
+                ) do %>
+                <%= Stylish.BookmarkSolidIcon.bookmark_solid_icon() %>
+              <% end %>
+            <% else %>
+              <%= content_tag(
+                  :button,
+                  title: "pin",
+                  type: :button,
+                  class: "text-blue-500 font-bold invisible group-hover:visible py-3",
+                  "phx-click": "pin",
+                  "phx-value-id": b.id
+                ) do %>
+                <%= Stylish.BookmarkIcon.bookmark_icon() %>
+              <% end %>
+            <% end %>
+
+            <%# pause %>
+            <%= content_tag(
+              :button,
+              title: "pause",
+              type: :button,
+              disabled: !Enum.member?([:working, :enqueued], b.status),
+              class: "text-blue-500 font-bold invisible group-hover:visible py-3 disabled:opacity-50",
+              "phx-click": "pause",
+              "phx-value-id": b.id
+            ) do %>
+              <%= Stylish.PauseIcon.pause_icon() %>
+            <% end %>
+
+            <%# resume %>
+            <%= content_tag(
+              :button,
+              title: "resume",
+              type: :button,
+              disabled: b.status != :paused,
+              class: "text-blue-500 font-bold invisible group-hover:visible py-3 disabled:opacity-50",
+              "phx-click": "resume",
+              "phx-value-id": b.id
+            ) do %>
+              <%= Stylish.PlayIcon.play_icon() %>
+            <% end %>
+
+            <%# delete %>
+            <%= content_tag(
+              :button,
+              title: "delete",
+              type: :button,
+              class: "text-red-500 font-bold invisible group-hover:visible py-3",
+              "phx-click": "delete",
+              "phx-value-id": b.id
+            ) do %>
+              <%= Stylish.TrashIcon.trash_icon() %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    <% else %>
+      <tr class="hover:bg-gray-50 border-t border-b group">
+        <td colspan="16" class="px-4 py-3">No backtests</td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

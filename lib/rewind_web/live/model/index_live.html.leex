@@ -5,22 +5,30 @@
 <table class="w-full mt-8">
   <thead class="bg-gray-200 border-t-2 border-gray-400">
     <tr>
-      <th scope="col" class="px-4 py-3 text-left text-gray-700">ID</th>
-      <th scope="col" class="px-4 py-3 text-left text-gray-700">Created At</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700 w-2/24">ID</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700 w-6/24">Input</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700 w-4/24">Quotes</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700 w-4/24">Trades</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700 w-4/24">Candles</th>
+      <th scope="col" class="px-4 py-3 text-left text-gray-700 w-4/24">Indicators</th>
     </tr>
   </thead>
   <tbody>
     <%= if Enum.any?(@models) do %>
       <%= for m <- @models do %>
         <tr class="hover:bg-gray-50 border-t border-b group">
-          <td class="px-4 py-3"><%= link m.id, to: Routes.model_path(@socket, :show, m.id), class: "hover:opacity-75" %></td>
-          <td class="px-4 py-3"><%= m.inserted_at %></td>
-          <td class="px-4 py-3"><%= m.name %></td>
+          <td class="px-4 py-3"><%= live_patch m.id, to: Routes.model_path(@socket, :show, m.id), class: "hover:opacity-75" %></td>
+          <td class="px-4 py-3"><%= format_input(m.input) %></td>
+          <%# <td class="px-4 py-3"><%= format_data(m.data) %1></td> %>
+          <td class="px-4 py-3"><%= m.quotes |> inspect %></td>
+          <td class="px-4 py-3"><%= m.trades |> inspect %></td>
+          <td class="px-4 py-3"><%= m.candles |> inspect %></td>
+          <td class="px-4 py-3"><%= m.indicators |> inspect %></td>
         </tr>
       <% end %>
     <% else %>
       <tr class="hover:bg-gray-50 border-t border-b group">
-        <td colspan="2" class="px-4 py-3">No models</td>
+        <td colspan="6" class="px-4 py-3">No models</td>
       </tr>
     <% end %>
   </tbody>

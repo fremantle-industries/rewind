@@ -16,7 +16,7 @@ end
 
 ## Requirements
 
-`rewind` requires Elixir 1.11+ & Erlang/OTP 22+
+`rewind` requires Elixir 1.12+ & Erlang/OTP 22+
 
 ## Help Wanted :)
 

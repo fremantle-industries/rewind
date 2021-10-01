@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   db:
-    # postgres 14 provides index performance improvements
-    # image: postgres:13.4
-    image: postgres:14beta3
+    image: timescale/timescaledb:2.5.1-pg14
     volumes:
       - "db_data:/var/lib/postgresql/data"
     environment:
@@ -12,6 +10,8 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+    command: >
+      -cmax_wal_size=2GB
 
   rewind:
     image: freo-cap/rewind:latest
@@ -22,6 +22,7 @@ services:
       - "${WORKBENCH_PROMETHEUS_METRICS_PORT:-9569}:${WORKBENCH_PROMETHEUS_METRICS_PORT:-9569}"
       - "${HISTORY_PROMETHEUS_METRICS_PORT:-9570}:${HISTORY_PROMETHEUS_METRICS_PORT:-9570}"
     environment:
+      - DOCKER=${DOCKER:-true}
       - DATABASE_URL=${DATABASE_URL:-ecto://postgres:postgres@db:5432/rewind_?}
       - NODE_COOKIE
       - HTTP_PORT
@@ -39,18 +40,9 @@ services:
       - HISTORY_SECRET_KEY_BASE
       - HISTORY_LIVE_VIEW_SIGNING_SALT
       - DOWNLOAD_CANDLE_CHUNKS_CONCURRENCY
-      - BITMEX_API_KEY
-      - BITMEX_API_SECRET
-      - BINANCE_API_KEY
-      - BINANCE_API_SECRET
-      - OKEX_API_KEY
-      - OKEX_API_PASSPHRASE
-      - OKEX_API_SECRET
-      - FTX_API_KEY
-      - FTX_API_SECRET
 
   prometheus:
-    image: 'prom/prometheus:v2.30.0'
+    image: 'prom/prometheus:v2.31.1'
     restart: always
     ports:
       - 9090:9090
@@ -64,7 +56,7 @@ services:
       - '--web.console.templates=/usr/share/prometheus/consoles'
 
   grafana:
-    image: 'grafana/grafana:8.1.4'
+    image: 'grafana/grafana:8.3.0'
     restart: always
     ports:
       - "3000:3000"
